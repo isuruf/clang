@@ -686,8 +686,24 @@ void ToolChain::AddCCKextLibArgs(const ArgList &Args,
   CmdArgs.push_back("-lcc_kext");
 }
 
+void addMLinkerHelper(const ArgList &Args, ArgStringList &CmdArgs, bool AddMLinker, StringRef Arg) {
+  if (AddMLinker) {
+    std::string quoted = "";
+    for (char CharArg: Arg) {
+      if (CharArg == '-')
+        quoted += "\-";
+      else
+        quoted += CharArg;
+    }
+    CmdArgs.push_back("-linker");
+    CmdArgs.push_back(Args.MakeArgString(quoted));
+  } else {
+    CmdArgs.push_back(Args.MakeArgString(Arg));
+  }
+}
+
 void ToolChain::AddFortranStdlibLibArgs(const ArgList &Args,
-                                    ArgStringList &CmdArgs) const {
+                                    ArgStringList &CmdArgs, bool AddMLinker) const {
  bool staticFlangLibs = false;
  bool useOpenMP = false;
 
@@ -704,6 +720,14 @@ void ToolChain::AddFortranStdlibLibArgs(const ArgList &Args,
       (A->getOption().matches(options::OPT_mp) ||
        A->getOption().matches(options::OPT_fopenmp))) {
       useOpenMP = true;
+  }
+  
+  if (!Args.hasArg(options::OPT_nostdlib, options::OPT_nostartfiles)) {
+    if (getDriver().IsFortranMode()) {
+      addMLinkerHelper(Args, CmdArgs, AddMLinker, "/defaultlib:msvcrt");
+    } else if (!getDriver().IsCLMode() && !getDriver().IsFortranMode()) {
+      addMLinkerHelper(Args, CmdArgs, AddMLinker, "/defaultlib:libcmt");
+    }
   }
 
   if (staticFlangLibs) {
