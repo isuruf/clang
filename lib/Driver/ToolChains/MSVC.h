@@ -137,10 +137,11 @@ protected:
   Tool *buildLinker() const override;
   Tool *buildAssembler() const override;
 private:
-  void MSVCToolChain::AddLinkerHelper(const ArgList &Args,
-                                      ArgStringList &CmdArgs,
-                                      bool IsLinker,
-                                      StringRef Arg);
+  void AddLinkerHelper(const ArgList &Args,
+                       ArgStringList &CmdArgs,
+                       bool IsLinker,
+                       StringRef Arg);
+
   std::string VCToolChainPath;
   ToolsetLayout VSLayout = ToolsetLayout::OlderVS;
   CudaInstallationDetector CudaInstallation;
